@@ -1,24 +1,31 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Web3Provider } from './contexts/Web3Context';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import Staking from './pages/Staking';
+import Investment from './pages/Investment';
+import TradingBot from './pages/TradingBot';
+import Presale from './pages/Presale';
+import Footer from './components/Footer';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Web3Provider>
+      <Router>
+        <div className="App">
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/staking" element={<Staking />} />
+            <Route path="/investment" element={<Investment />} />
+            <Route path="/trading-bot" element={<TradingBot />} />
+            <Route path="/presale" element={<Presale />} />
+          </Routes>
+          <Footer />
+        </div>
+      </Router>
+    </Web3Provider>
   );
 }
 
