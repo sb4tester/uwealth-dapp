@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import Web3 from 'web3';
+import config from '../config/config';
 
 export const Web3Context = createContext();
 
@@ -21,6 +22,23 @@ export const Web3Provider = ({ children }) => {
     }
     return null;
   };
+  
+  const checkNetwork = async () => {
+	    if (web3) {
+	      try {
+	        const networkId = await web3.eth.net.getId();
+	        if (networkId !== config.networkId) {
+	          alert(`Please connect to ${config.networkName} (Network ID: ${config.networkId})`);
+	          return false;
+	        }
+	        return true;
+	      } catch (error) {
+	        console.error("Error checking network:", error);
+	        return false;
+	      }
+	    }
+	    return false;
+	  };
 
   const checkWalletStatus = async () => {
     const provider = getMetaMaskProvider();
