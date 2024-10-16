@@ -8,6 +8,7 @@ import Investment from './pages/Investment';
 import TradingBot from './pages/TradingBot';
 import Presale from './pages/Presale';
 import Footer from './components/Footer';
+import OwnerConfig from './components/OwnerConfig';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="/investment" element={<Investment />} />
             <Route path="/trading-bot" element={<TradingBot />} />
             <Route path="/presale" element={<Presale />} />
+            <Route path="/owner-config" element={<OwnerConfig />} />
           </Routes>
           <Footer />
         </div>
