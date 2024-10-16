@@ -73,9 +73,9 @@ function Presale() {
 					presaleContract.methods.endTime().call(),
 					presaleContract.methods.totalTokensSold().call(),
 					presaleContract.methods.purchases(account).call(),
-					presaleContract.methods.TOKENS_PER_USDT().call(),
-					presaleContract.methods.MIN_PURCHASE_USDT().call(),
-					presaleContract.methods.MAX_PURCHASE_USDT().call(),
+					presaleContract.methods.tokensPerUSDT().call(),
+					presaleContract.methods.minPurchaseUSDT().call(),
+					presaleContract.methods.maxPurchaseUSDT().call(),
 					presaleContract.methods.minPurchaseBNB().call(),
 					presaleContract.methods.maxPurchaseBNB().call()
 					]);
@@ -139,7 +139,7 @@ function Presale() {
 		try {
 			const [bnbRate, usdtRate] = await Promise.all([
 				presaleContract.methods.tokensPerBNB().call(),
-				presaleContract.methods.TOKENS_PER_USDT().call()
+				presaleContract.methods.tokensPerUSDT().call()
 				]);
 
 			console.log('BNB Rate:', web3.utils.fromWei(bnbRate, 'ether'), 'UWT per BNB');
@@ -405,7 +405,8 @@ function Presale() {
 		    });
 
 		    console.log("9. Converting BNB to Wei");
-		    const amountWei = web3.utils.toWei(bnbAmount, 'ether');
+		    //const amountWei = web3.utils.toWei(bnbAmount, 'ether');
+		    const amountWei = web3.utils.toWei(bnbAmount, 'ether'); // คำนวณจาก BNB เป็น Wei
 		    const minPurchaseWei = web3.utils.toWei(minPurchaseBNB, 'ether');
 		    const maxPurchaseWei = web3.utils.toWei(maxPurchaseBNB, 'ether');
 		    
@@ -440,6 +441,7 @@ function Presale() {
 		      from: account, 
 		      value: amountWei 
 		    });
+		    
 		    console.log("Estimated gas:", gasEstimate);
 
 		    const gasPrice = await web3.eth.getGasPrice();
@@ -447,13 +449,20 @@ function Presale() {
 		    console.log("Adjusted gas price:", adjustedGasPrice);
 
 		    console.log("16. Sending BNB purchase transaction");
+		    const tx = await presaleContract.methods.buyTokensWithBNB().send({
+		    	  from: account,
+		    	  value: amountWei, // จำนวน BNB ที่จะซื้อ
+		    	  gas: Math.floor(gasEstimate * 1.5),
+		    	  gasPrice: adjustedGasPrice
+		    	});
+		    /*
 		    const tx = await presaleContract.methods.buyTokensWithBNB().send({ 
 		      from: account, 
 		      value: amountWei,
 		      gas: Math.floor(gasEstimate * 1.5),
 		      gasPrice: adjustedGasPrice
 		    });
-
+*/
 		    console.log('17. Transaction successful:', tx.transactionHash);
 		    const receipt = await web3.eth.getTransactionReceipt(tx.transactionHash);
 		    console.log('18. Transaction receipt:', receipt);
@@ -542,10 +551,16 @@ function Presale() {
 			console.log("11. Estimated gas:", gasEstimate);
 
 			console.log("12. Sending USDT purchase transaction");
+			/*
 			const tx = await presaleContract.methods.buyTokensWithUSDT(amountWei).send({ 
 				from: account,
 				gas: Math.floor(gasEstimate * 1.5)
 			});
+			*/
+			const tx = await presaleContract.methods.buyTokensWithUSDT(amountWei).send({
+				  from: account,
+				  gas: Math.floor(gasEstimate * 1.5)
+				});
 			console.log('13. Purchase successful:', tx.transactionHash);
 
 			const receipt = await web3.eth.getTransactionReceipt(tx.transactionHash);

@@ -100,6 +100,7 @@ export const Web3Provider = ({ children }) => {
 		}
 	};
 
+	
 	useEffect(() => {
 		checkWalletStatus();
 		const provider = getMetaMaskProvider();

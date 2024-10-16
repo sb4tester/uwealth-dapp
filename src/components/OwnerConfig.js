@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Web3Context } from '../contexts/Web3Context';
 import presaleABI from '../contracts/UWealthPresale.json';
+import { ERC20ABI } from '../contracts/ERC20ABI';  // เพิ่มบรรทัดนี้
 import config from '../config/config';
 
 function OwnerConfig() {
@@ -9,6 +10,7 @@ function OwnerConfig() {
   const { web3, account, checkNetwork } = useContext(Web3Context);
   console.log("2. Web3Context values:", { web3: !!web3, account, checkNetwork: !!checkNetwork });
 
+  const [canWithdrawTokens, setCanWithdrawTokens] = useState(false);
   const [presaleContract, setPresaleContract] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -63,6 +65,30 @@ function OwnerConfig() {
     	}
     initializeContract();
   }, [web3, account]);
+  
+  useEffect(() => {
+	  if (presaleContract && web3) {
+	    checkWithdrawConditions();
+	  }
+	}, [presaleContract, web3]);
+
+  const checkWithdrawConditions = async () => {
+	  if (presaleContract && web3) {
+	    try {
+	      const currentTime = Math.floor(Date.now() / 1000);
+	      const endTime = await presaleContract.methods.endTime().call();
+	      const uwtTokenAddress = await presaleContract.methods.uwtToken().call();
+	      const uwtTokenContract = new web3.eth.Contract(ERC20ABI, uwtTokenAddress);
+	      const remainingTokens = await uwtTokenContract.methods.balanceOf(presaleContract.options.address).call();
+
+	      setCanWithdrawTokens(currentTime > Number(endTime) && Number(remainingTokens) > 0);
+	    } catch (error) {
+	      console.error("Error checking withdraw conditions:", error);
+	      setCanWithdrawTokens(false);
+	    }
+	  }
+	};
+
 
   const checkOwnership = async (contract) => {
     console.log("8. Checking ownership");
@@ -88,61 +114,61 @@ function OwnerConfig() {
 
 	    try {
 	      currentEndTime = await contract.methods.endTime().call();
-	      console.log("End time:", currentEndTime);
+	      console.log("End time:", currentEndTime.toString());
 	    } catch (error) {
 	      console.error("Error fetching endTime:", error);
 	    }
 
 	    try {
 	      currentMinPurchaseBNB = await contract.methods.minPurchaseBNB().call();
-	      console.log("Min Purchase BNB:", currentMinPurchaseBNB);
+	      console.log("Min Purchase BNB:", currentMinPurchaseBNB.toString());
 	    } catch (error) {
 	      console.error("Error fetching minPurchaseBNB:", error);
 	    }
 
 	    try {
 	      currentMaxPurchaseBNB = await contract.methods.maxPurchaseBNB().call();
-	      console.log("Max Purchase BNB:", currentMaxPurchaseBNB);
+	      console.log("Max Purchase BNB:", currentMaxPurchaseBNB.toString());
 	    } catch (error) {
 	      console.error("Error fetching maxPurchaseBNB:", error);
 	    }
 
 	    try {
 	      currentMinPurchaseUSDT = await contract.methods.minPurchaseUSDT().call();
-	      console.log("Min Purchase USDT:", currentMinPurchaseUSDT);
+	      console.log("Min Purchase USDT:", currentMinPurchaseUSDT.toString());
 	    } catch (error) {
 	      console.error("Error fetching minPurchaseUSDT:", error);
 	    }
 
 	    try {
 	      currentMaxPurchaseUSDT = await contract.methods.maxPurchaseUSDT().call();
-	      console.log("Max Purchase USDT:", currentMaxPurchaseUSDT);
+	      console.log("Max Purchase USDT:", currentMaxPurchaseUSDT.toString());
 	    } catch (error) {
 	      console.error("Error fetching maxPurchaseUSDT:", error);
 	    }
 
 	    try {
 	      currentTokensPerUSDT = await contract.methods.tokensPerUSDT().call();
-	      console.log("Tokens per USDT:", currentTokensPerUSDT);
+	      console.log("Tokens per USDT:", currentTokensPerUSDT.toString());
 	    } catch (error) {
 	      console.error("Error fetching tokensPerUSDT:", error);
 	    }
 
 	    try {
 	      currentTokensPerBNB = await contract.methods.tokensPerBNB().call();
-	      console.log("Tokens per BNB:", currentTokensPerBNB);
+	      console.log("Tokens per BNB:", currentTokensPerBNB.toString());
 	    } catch (error) {
 	      console.error("Error fetching tokensPerBNB:", error);
 	    }
 
 	    const values = {
-	      endTime: currentEndTime ? new Date(currentEndTime * 1000).toISOString().slice(0, 16) : '',
-	      minPurchaseBNB: currentMinPurchaseBNB ? web3.utils.fromWei(currentMinPurchaseBNB, 'ether') : '',
-	      maxPurchaseBNB: currentMaxPurchaseBNB ? web3.utils.fromWei(currentMaxPurchaseBNB, 'ether') : '',
-	      minPurchaseUSDT: currentMinPurchaseUSDT ? web3.utils.fromWei(currentMinPurchaseUSDT, 'mwei') : '',
-	      maxPurchaseUSDT: currentMaxPurchaseUSDT ? web3.utils.fromWei(currentMaxPurchaseUSDT, 'mwei') : '',
-	      tokensPerUSDT: currentTokensPerUSDT ? web3.utils.fromWei(currentTokensPerUSDT, 'ether') : '',
-	      tokensPerBNB: currentTokensPerBNB ? web3.utils.fromWei(currentTokensPerBNB, 'ether') : ''
+	      endTime: currentEndTime ? new Date(Number(currentEndTime) * 1000).toISOString().slice(0, 16) : '',
+	      minPurchaseBNB: currentMinPurchaseBNB ? web3.utils.fromWei(currentMinPurchaseBNB.toString(), 'ether') : '',
+	      maxPurchaseBNB: currentMaxPurchaseBNB ? web3.utils.fromWei(currentMaxPurchaseBNB.toString(), 'ether') : '',
+	      minPurchaseUSDT: currentMinPurchaseUSDT ? web3.utils.fromWei(currentMinPurchaseUSDT.toString(), 'mwei') : '',
+	      maxPurchaseUSDT: currentMaxPurchaseUSDT ? web3.utils.fromWei(currentMaxPurchaseUSDT.toString(), 'mwei') : '',
+	      tokensPerUSDT: currentTokensPerUSDT ? web3.utils.fromWei(currentTokensPerUSDT.toString(), 'ether') : '',
+	      tokensPerBNB: currentTokensPerBNB ? web3.utils.fromWei(currentTokensPerBNB.toString(), 'ether') : ''
 	    };
 
 	    console.log("13. Processed values:", values);
@@ -161,27 +187,30 @@ function OwnerConfig() {
   };
 
   const handleUpdatePresale = async () => {
-    if (!presaleContract || !isOwner) return;
-    try {
-      const newEndTimeUnix = Math.floor(new Date(newValues.endTime).getTime() / 1000);
-      const tx = await presaleContract.methods.startPresale(
-        newEndTimeUnix,
-        web3.utils.toWei(newValues.tokensPerBNB, 'ether'),
-        web3.utils.toWei(newValues.tokensPerUSDT, 'ether'),
-        web3.utils.toWei(newValues.minPurchaseBNB, 'ether'),
-        web3.utils.toWei(newValues.maxPurchaseBNB, 'ether'),
-        web3.utils.toWei(newValues.minPurchaseUSDT, 'mwei'),
-        web3.utils.toWei(newValues.maxPurchaseUSDT, 'mwei')
-      ).send({ from: account });
-      
-      console.log('Presale settings updated:', tx.transactionHash);
-      alert('Presale settings have been updated successfully!');
-      fetchCurrentValues(presaleContract);
-    } catch (error) {
-      console.error("Error updating presale settings:", error);
-      alert("Failed to update presale settings. Check console for details.");
-    }
-  };
+	  if (!presaleContract || !isOwner) return;
+	  try {
+	    console.log("Updating presale with values:", newValues);
+	    const startTimeUnix = Math.floor(Date.now() / 1000) + 60; // เริ่มใน 1 นาที
+	    const endTimeUnix = Math.floor(new Date(newValues.endTime).getTime() / 1000);
+	    const tx = await presaleContract.methods.startPresale(
+	      startTimeUnix,
+	      endTimeUnix,
+	      web3.utils.toWei(newValues.tokensPerBNB, 'ether'),
+	      web3.utils.toWei(newValues.tokensPerUSDT, 'ether'),
+	      web3.utils.toWei(newValues.minPurchaseBNB, 'ether'),
+	      web3.utils.toWei(newValues.maxPurchaseBNB, 'ether'),
+	      web3.utils.toWei(newValues.minPurchaseUSDT, 'mwei'),
+	      web3.utils.toWei(newValues.maxPurchaseUSDT, 'mwei')
+	    ).send({ from: account });
+	    
+	    console.log('Presale settings updated:', tx.transactionHash);
+	    alert('Presale settings have been updated successfully!');
+	    fetchCurrentValues(presaleContract);
+	  } catch (error) {
+	    console.error("Error updating presale settings:", error);
+	    alert("Failed to update presale settings. Check console for details.");
+	  }
+	};
 
   const handleWithdrawTokens = async () => {
     if (!presaleContract || !isOwner) return;
@@ -331,11 +360,12 @@ function OwnerConfig() {
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <h2 className="text-2xl font-bold mb-4">Withdraw Funds</h2>
         <button
-          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2"
-          onClick={handleWithdrawTokens}
-        >
-          Withdraw Remaining Tokens
-        </button>
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2"
+        onClick={handleWithdrawTokens}
+        disabled={!canWithdrawTokens}
+      >
+        Withdraw Remaining Tokens
+      </button>
         <button
           className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mr-2"
           onClick={handleWithdrawBNB}
