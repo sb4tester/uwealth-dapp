@@ -60,7 +60,9 @@ export const Web3Provider = ({ children }) => {
 				}
 
 				const networkId = await web3Instance.eth.net.getId();
-				console.log("Current Network ID:", networkId);
+			    const currentNetworkId = Number(networkId);
+			    console.log("Current Network ID:", currentNetworkId);
+			    console.log("Expected Network ID:", config.networkId);
 			} catch (error) {
 				console.error("An error occurred while checking wallet status:", error);
 				setAccount(null);

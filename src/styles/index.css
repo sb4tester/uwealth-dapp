@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/*
 
 body {
   margin: 0;
@@ -14,4 +15,36 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+*/
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+@layer base {
+  :root {
+    --color-primary: 52 152 219;
+    --color-secondary: 46 204 113;
+    --color-background-dark: 26 26 46;
+    --color-background-light: 22 33 62;
+    --color-text: 255 255 255;
+    --color-text-secondary: 189 195 199;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white font-semibold py-2 px-4 rounded transition duration-300 ease-in-out;
+  }
+  .btn-secondary {
+    @apply bg-secondary text-white font-semibold py-2 px-4 rounded transition duration-300 ease-in-out;
+  }
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  line-height: 1.6;
 }
