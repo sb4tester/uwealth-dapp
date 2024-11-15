@@ -5,16 +5,6 @@
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "_uwtToken",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_usdtToken",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
 				"name": "initialOwner",
 				"type": "address"
 			}
@@ -23,30 +13,13 @@
 		"type": "constructor"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "target",
-				"type": "address"
-			}
-		],
-		"name": "AddressEmptyCode",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			}
-		],
-		"name": "AddressInsufficientBalance",
+		"inputs": [],
+		"name": "InvalidInitialization",
 		"type": "error"
 	},
 	{
 		"inputs": [],
-		"name": "FailedInnerCall",
+		"name": "NotInitializing",
 		"type": "error"
 	},
 	{
@@ -72,27 +45,16 @@
 		"type": "error"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "token",
-				"type": "address"
-			}
-		],
-		"name": "SafeERC20FailedOperation",
-		"type": "error"
-	},
-	{
 		"anonymous": false,
 		"inputs": [
 			{
 				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
+				"internalType": "uint64",
+				"name": "version",
+				"type": "uint64"
 			}
 		],
-		"name": "BNBWithdrawn",
+		"name": "Initialized",
 		"type": "event"
 	},
 	{
@@ -118,32 +80,62 @@
 		"anonymous": false,
 		"inputs": [
 			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			},
+			{
 				"indexed": false,
 				"internalType": "uint256",
-				"name": "totalSold",
+				"name": "_totalTokens",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "_startTime",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "_endTime",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "enableBuyWithEth",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "enableBuyWithUsdt",
 				"type": "uint256"
 			}
 		],
-		"name": "PresaleEnded",
+		"name": "PresaleCreated",
 		"type": "event"
 	},
 	{
 		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": false,
+				"indexed": true,
 				"internalType": "uint256",
-				"name": "startTime",
+				"name": "id",
 				"type": "uint256"
 			},
 			{
 				"indexed": false,
 				"internalType": "uint256",
-				"name": "endTime",
+				"name": "timestamp",
 				"type": "uint256"
 			}
 		],
-		"name": "PresaleStarted",
+		"name": "PresalePaused",
 		"type": "event"
 	},
 	{
@@ -152,54 +144,152 @@
 			{
 				"indexed": true,
 				"internalType": "address",
-				"name": "buyer",
+				"name": "prevValue",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newValue",
 				"type": "address"
 			},
 			{
 				"indexed": false,
 				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "PresaleTokenAddressUpdated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "PresaleUnpaused",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "key",
+				"type": "bytes32"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "prevValue",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "newValue",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "PresaleUpdated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "purchaseToken",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "tokensBought",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amountPaid",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "TokensBought",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
 				"name": "amount",
 				"type": "uint256"
 			},
 			{
 				"indexed": false,
-				"internalType": "string",
-				"name": "currency",
-				"type": "string"
-			}
-		],
-		"name": "TokensPurchased",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
 				"internalType": "uint256",
-				"name": "amount",
+				"name": "timestamp",
 				"type": "uint256"
 			}
 		],
-		"name": "TokensWithdrawn",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "USDTWithdrawn",
+		"name": "TokensClaimed",
 		"type": "event"
 	},
 	{
 		"inputs": [],
-		"name": "PRESALE_SUPPLY",
+		"name": "BASE_MULTIPLIER",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -212,8 +302,64 @@
 	},
 	{
 		"inputs": [],
-		"name": "buyTokensWithBNB",
-		"outputs": [],
+		"name": "MONTH",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "USDTInterface",
+		"outputs": [
+			{
+				"internalType": "contract IERC20Upgradeable",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "UWTInterface",
+		"outputs": [
+			{
+				"internalType": "contract IERC20Upgradeable",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "buyWithEth",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
 		"stateMutability": "payable",
 		"type": "function"
 	},
@@ -221,25 +367,201 @@
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "usdtAmount",
+				"name": "_id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
 				"type": "uint256"
 			}
 		],
-		"name": "buyTokensWithUSDT",
+		"name": "buyWithUSDT",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_enableToBuyWithEth",
+				"type": "uint256"
+			}
+		],
+		"name": "changeEnableBuyWithEth",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "endPresale",
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_enableToBuyWithUsdt",
+				"type": "uint256"
+			}
+		],
+		"name": "changeEnableBuyWithUsdt",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "endTime",
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_newPrice",
+				"type": "uint256"
+			}
+		],
+		"name": "changePrice",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_startTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_endTime",
+				"type": "uint256"
+			}
+		],
+		"name": "changeSaleTimes",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "_newAddress",
+				"type": "address"
+			}
+		],
+		"name": "changeSaleTokenAddress",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_vestingStartTime",
+				"type": "uint256"
+			}
+		],
+		"name": "changeVestingStartTime",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			}
+		],
+		"name": "claim",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address[]",
+				"name": "users",
+				"type": "address[]"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			}
+		],
+		"name": "claimMultiple",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			}
+		],
+		"name": "claimableAmount",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -251,12 +573,81 @@
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "maxPurchaseBNB",
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_startTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_endTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_price",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_tokensToSell",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_baseDecimals",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_vestingStartTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_vestingCliff",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_vestingPeriod",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_enableBuyWithEth",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_enableBuyWithUsdt",
+				"type": "uint256"
+			}
+		],
+		"name": "createPresale",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "ethBuyHelper",
 		"outputs": [
 			{
 				"internalType": "uint256",
-				"name": "",
+				"name": "ethAmount",
 				"type": "uint256"
 			}
 		],
@@ -265,33 +656,7 @@
 	},
 	{
 		"inputs": [],
-		"name": "maxPurchaseUSDT",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "minPurchaseBNB",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "minPurchaseUSDT",
+		"name": "getLatestPrice",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -318,12 +683,112 @@
 	{
 		"inputs": [
 			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
 			}
 		],
-		"name": "purchases",
+		"name": "pausePresale",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "paused",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "presale",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "saleToken",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "startTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "endTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "tokensToSell",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "baseDecimals",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "inSale",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "vestingStartTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "vestingCliff",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "vestingPeriod",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "enableBuyWithEth",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "enableBuyWithUsdt",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "presaleId",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -344,119 +809,6 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "_newEndTime",
-				"type": "uint256"
-			}
-		],
-		"name": "setEndTime",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_startTime",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_endTime",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_tokensPerBNB",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_tokensPerUSDT",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_minPurchaseBNB",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_maxPurchaseBNB",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_minPurchaseUSDT",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_maxPurchaseUSDT",
-				"type": "uint256"
-			}
-		],
-		"name": "startPresale",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "startTime",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "tokensPerBNB",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "tokensPerUSDT",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "totalTokensSold",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
 				"internalType": "address",
 				"name": "newOwner",
 				"type": "address"
@@ -468,61 +820,86 @@
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "usdtToken",
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			}
+		],
+		"name": "unPausePresale",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "usdtBuyHelper",
 		"outputs": [
 			{
-				"internalType": "contract IERC20",
-				"name": "",
-				"type": "address"
+				"internalType": "uint256",
+				"name": "usdPrice",
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "uwtToken",
-		"outputs": [
+		"inputs": [
 			{
-				"internalType": "contract IERC20",
+				"internalType": "address",
 				"name": "",
 				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "userVesting",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "totalAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "claimedAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "claimStart",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "claimEnd",
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
 		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "withdrawBNB",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "withdrawRemainingTokens",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "withdrawUSDT",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"stateMutability": "payable",
-		"type": "receive"
 	}
 ],
     "networks": {
       "97": {
-        "address": "0x52699a434e9afceef889e7601b3215e486efde9c",
-        "transactionHash": "0xbc33b757e62b6299becfa1bf7f1bfdd043138bacc22283fb4044423b745a8db4"
+        "address": "0xb824d37cc5150445e7ffeba1762b3c9e65f1535c",
+        "transactionHash": "0x46bcb03045fd932969d0455d9e79d8291f252327c49bc708f4f2fe194ae1bb96"
       }
     }
   }

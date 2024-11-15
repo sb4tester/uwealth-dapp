@@ -28,6 +28,7 @@ function Presale() {
   const [isOwner, setIsOwner] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState('BNB');
   const [estimatedTokens, setEstimatedTokens] = useState('0');
+  const [transactionStatus, setTransactionStatus] = useState('');
 
   const updatePresaleInfo = useCallback(async () => {
     if (!presaleContract || !account || !web3) return;
@@ -208,6 +209,7 @@ function Presale() {
 	    }
 
 	    setIsPurchasing(true);
+	    setTransactionStatus('Processing BNB purchase...');
 
 	    try {
 	      const amountWei = web3.utils.toWei(amount, 'ether');
@@ -220,34 +222,42 @@ function Presale() {
 	        throw new Error(`Amount is above maximum purchase of ${maxPurchaseBNB} BNB`);
 	      }
 
-	      console.log("6. Estimating gas for BNB purchase");
-	      /*
-	      const gasEstimate = await presaleContract.methods.buyTokensWithBNB().estimateGas({ 
-	        from: account, 
-	        value: amountWei 
-	      });
-*/
-	      console.log("7. Sending BNB purchase transaction");
-	      const tx = await presaleContract.methods.buyTokensWithBNB().send({
-	        from: account,
-	        value: amountWei,
-	        gas: 500000 //Math.floor(gasEstimate * 1.2)
-	      });
+	      console.log("6. Preparing BNB purchase transaction");
+	      console.log("Contract address:", presaleContract.options.address);
+	      console.log("Account:", account);
+	      console.log("Amount Wei:", amountWei);
+
+	      console.log("Sending transaction with fixed gas limit");
+	        const tx = await presaleContract.methods.buyTokensWithBNB().send({
+	            from: account,
+	            value: amountWei,
+	            gas: 900000, // กำหนดค่า gas limit ที่สูงพอ
+	        });
 
 	      console.log('8. Transaction successful:', tx.transactionHash);
+	      setTransactionStatus('Purchase successful!');
 	      await updatePresaleInfo();
 	      await updateUserBalances();
 	      setAmount('');
 	      alert("Purchase successful!");
 	    } catch (error) {
 	      console.error("9. Error buying tokens with BNB:", error);
-	      alert(`An error occurred: ${error.message}`);
+	      let errorMessage = "An unknown error occurred.";
+	      if (error.message.includes("User denied transaction")) {
+	        errorMessage = "Transaction was cancelled.";
+	      } else if (error.message.includes("insufficient funds")) {
+	        errorMessage = "Insufficient funds for gas * price + value.";
+	      } else if (error.message.includes("execution reverted")) {
+	        errorMessage = "Transaction reverted by the contract. Please check contract conditions.";
+	      }
+	      setTransactionStatus(`Error: ${errorMessage}`);
+	      alert(`An error occurred: ${errorMessage}`);
 	    } finally {
 	      setIsPurchasing(false);
 	    }
-	  };
+	};
 
-	  const handleBuyWithUSDT = async () => {
+	const handleBuyWithUSDT = async () => {
 	    console.log("1. Starting handleBuyWithUSDT");
 	    if (!presaleContract || !usdtContract || !account) {
 	      console.error("2. Missing required data for USDT purchase");
@@ -269,49 +279,62 @@ function Presale() {
 	    }
 
 	    try {
-	      const amountWei = web3.utils.toWei(amount, 'mwei');
+	      const amountWei = web3.utils.toWei(amount, 'mwei'); // USDT uses 6 decimals
 	      
-	      if (parseFloat(amount) < parseFloat(minPurchaseUSDT)) {
-	        throw new Error(`Amount is below minimum purchase of ${minPurchaseUSDT} USDT`);
+	      // Check USDT balance
+	      const usdtBalance = await usdtContract.methods.balanceOf(account).call();
+	      console.log("USDT Balance:", web3.utils.fromWei(usdtBalance, 'mwei'), "USDT");
+	      if (parseFloat(web3.utils.fromWei(usdtBalance, 'mwei')) < parseFloat(amount)) {
+	        alert("Insufficient USDT balance");
+	        return;
 	      }
-	      
-	      if (parseFloat(amount) > parseFloat(maxPurchaseUSDT)) {
-	        throw new Error(`Amount is above maximum purchase of ${maxPurchaseUSDT} USDT`);
+
+	      // Check UWT balance in presale contract
+	      const uwtBalance = await uwtToken.methods.balanceOf(presaleContract.options.address).call();
+	      const tokenAmount = parseFloat(amount) * parseFloat(tokensPerUSDT);
+	      console.log("UWT Balance in contract:", web3.utils.fromWei(uwtBalance, 'ether'), "UWT");
+	      console.log("Token amount to purchase:", tokenAmount, "UWT");
+	      if (parseFloat(web3.utils.fromWei(uwtBalance, 'ether')) < tokenAmount) {
+	        alert("Insufficient UWT tokens in presale contract");
+	        return;
 	      }
 
 	      setIsApproving(true);
+	      setTransactionStatus('Checking USDT allowance...');
 	      console.log("6. Checking USDT allowance");
 	      const allowance = await usdtContract.methods.allowance(account, presaleContract.options.address).call();
+	      console.log("Current allowance:", web3.utils.fromWei(allowance, 'mwei'), "USDT");
 	      if (parseFloat(web3.utils.fromWei(allowance, 'mwei')) < parseFloat(amount)) {
 	        console.log("7. Approving USDT");
+	        setTransactionStatus('Approving USDT...');
 	        const approveTx = await usdtContract.methods.approve(presaleContract.options.address, amountWei).send({ from: account });
 	        console.log('Approval transaction:', approveTx.transactionHash);
 	      }
 	      setIsApproving(false);
 
 	      setIsPurchasing(true);
-	      console.log("8. Estimating gas for USDT purchase");
-	      //const gasEstimate = await presaleContract.methods.buyTokensWithUSDT(amountWei).estimateGas({ from: account });
-	      
-	      console.log("9. Sending USDT purchase transaction");
+	      setTransactionStatus('Processing USDT purchase...');
+	      console.log("8. Sending USDT purchase transaction");
 	      const tx = await presaleContract.methods.buyTokensWithUSDT(amountWei).send({ 
 	        from: account,
-	        gas: 500000 //Math.floor(gasEstimate * 1.2)
+	        gas: 500000 // Fixed gas value
 	      });
 
-	      console.log('10. Purchase successful:', tx.transactionHash);
+	      console.log('9. Purchase successful:', tx.transactionHash);
+	      setTransactionStatus('Purchase successful!');
 	      await updatePresaleInfo();
 	      await updateUserBalances();
 	      setAmount('');
 	      alert("Purchase successful!");
 	    } catch (error) {
-	      console.error("11. Error buying tokens with USDT:", error);
+	      console.error("10. Error buying tokens with USDT:", error);
+	      setTransactionStatus(`Error: ${error.message}`);
 	      alert(`An error occurred: ${error.message}`);
 	    } finally {
 	      setIsApproving(false);
 	      setIsPurchasing(false);
 	    }
-	  };
+	};
 
   const handleBuy = async () => {
     if (selectedCurrency === 'BNB') {
@@ -326,7 +349,7 @@ function Presale() {
 	return (
 		    <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] flex items-center justify-center">
 		      <div className="bg-[#1e2a3a] rounded-lg shadow-xl p-6 w-full max-w-md">
-		        <h2 className="text-2xl font-bold text-white mb-4">STAGE 2 (10% Bonus)</h2>
+		        <h2 className="text-2xl font-bold text-white mb-4">Presale Status : {presaleStatus}</h2>
 		        <div className="mb-4">
 		        <label className="block text-gray-400 mb-2">
 		          You send (min: {selectedCurrency === 'BNB' ? minPurchaseBNB : minPurchaseUSDT}, 
@@ -406,6 +429,9 @@ function Presale() {
 					Connect Wallet
 					</button>
 			)}
+			{transactionStatus && (
+					  <p className="mt-4 text-center text-white">{transactionStatus}</p>
+					)}
 			{isOwner && (
 					<Link 
 					to="/owner-config" 

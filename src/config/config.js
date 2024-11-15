@@ -9,7 +9,7 @@ const config = {
         address: "0x1b49d75bf32f2e2274aad0cec293100e33cae787",
       },
       presale: {
-        address: "0x885e204faa64d8b5bc197b195c0666dd76eb3d78",
+        address: "0xb824d37cc5150445e7ffeba1762b3c9e65f1535c",
       },
       blueChipCryptoFund: {
         address: "0x9a7fafe7e7d317f315393cab2f6fd10f4db5484b",
